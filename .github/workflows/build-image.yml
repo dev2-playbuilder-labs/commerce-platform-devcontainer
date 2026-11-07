@@ -1,0 +1,128 @@
+name: build-image
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        # 예: 1.1.0 (표시용 tag. 실제 고정은 digest로 한다)
+        description: image version tag
+        required: true
+        type: string
+permissions:
+  contents: read
+env:
+  # 예: ghcr.io/contract2whale-labs/commerce-platform-devcontainer
+  IMAGE: ghcr.io/${{ github.repository_owner }}/commerce-platform-devcontainer
+  # devcontainer CLI 판(0.80.0은 npm에 있음, 2026-11-06 기준 최신 0.90.0). 올릴 때 npm view @devcontainers/cli version 으로 확인한 뒤 이 값만 바꾼다.
+  DEVCONTAINER_CLI_VERSION: "0.80.0"
+  build:
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    # packages·id-token 권한을 주지 않는다.
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Build platform image
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          npm install --global --ignore-scripts "@devcontainers/cli@${DEVCONTAINER_CLI_VERSION}"
+          # feature 설치까지 끝난 image를 만든다. feature 설정은 image label devcontainer.metadata에 기록된다.
+          devcontainer build --workspace-folder . --platform "linux/${ARCH}" --image-name "commerce-platform-devcontainer:ci-${ARCH}"
+          docker save "commerce-platform-devcontainer:ci-${ARCH}" -o "image-${ARCH}.tar"
+          sha256sum "image-${ARCH}.tar" > "image-${ARCH}.tar.sha256"
+      - if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: devcontainer-${{ matrix.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            image-${{ matrix.arch }}.tar
+            image-${{ matrix.arch }}.tar.sha256
+          if-no-files-found: error
+          retention-days: 1
+  publish:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      # GHCR push
+      packages: write
+      # cosign keyless 서명: GitHub OIDC token으로 Fulcio 인증서를 받는다(workflow identity가 인증서에 들어간다).
+      id-token: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      # 예: 1.1.0, 수동 실행이 아니면 sha-<commit 7자>
+      VERSION: ${{ inputs.version || format('sha-{0}', github.sha) }}
+    steps:
+      - name: Download both platform images
+        run: |
+          for arch in amd64 arm64; do
+            gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "devcontainer-${arch}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" --dir .
+            sha256sum --check "image-${arch}.tar.sha256"
+          done
+      - name: Push platform images and create index
+        id: push
+        run: |
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          for arch in amd64 arm64; do
+            docker load -i "image-${arch}.tar"
+            docker tag "commerce-platform-devcontainer:ci-${arch}" "$IMAGE:${VERSION}-${arch}"
+            docker push "$IMAGE:${VERSION}-${arch}"
+          done
+          docker buildx imagetools create --tag "$IMAGE:${VERSION}" "$IMAGE:${VERSION}-amd64" "$IMAGE:${VERSION}-arm64"
+          DIGEST=$(docker buildx imagetools inspect "$IMAGE:${VERSION}" --format '{{json .Manifest}}' | jq -r .digest)
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+          echo "### image: $IMAGE:${VERSION}@$DIGEST" >> "$GITHUB_STEP_SUMMARY"
+      # SBOM은 고정한 trivy action으로 platform마다 만든다(SPDX JSON).
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.74.0
+          image-ref: ${{ env.IMAGE }}:${{ env.VERSION }}-amd64
+          format: spdx-json
+          output: sbom-amd64.spdx.json
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.74.0
+          image-ref: ${{ env.IMAGE }}:${{ env.VERSION }}-arm64
+          format: spdx-json
+          output: sbom-arm64.spdx.json
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        with:
+          cosign-release: v3.1.3
+      - name: Sign index and attach SBOM (keyless)
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          # digest에 서명한다. tag는 다시 push될 수 있으므로 서명 대상으로 쓰지 않는다.
+          cosign sign --yes "$IMAGE@$DIGEST"
+          cosign attest --yes --type spdxjson --predicate sbom-amd64.spdx.json "$IMAGE@$DIGEST"
+          cosign attest --yes --type spdxjson --predicate sbom-arm64.spdx.json "$IMAGE@$DIGEST"
+          # 서명한 identity가 이 저장소 main의 이 workflow인지 확인한다.
+          cosign verify "$IMAGE@$DIGEST" \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            --certificate-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/build-image.yml@refs/heads/main"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: devcontainer-sbom-${{ github.run_id }}-${{ github.run_attempt }}
+          path: sbom-*.spdx.json
+          retention-days: 30
