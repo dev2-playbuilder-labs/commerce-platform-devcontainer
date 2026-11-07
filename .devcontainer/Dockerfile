@@ -22,7 +22,6 @@ ARG SEMGREP_VERSION=1.182.0
 ARG CRANE_VERSION=0.20.6
 ARG AWSCLI_VERSION=2.36.44
 ARG SSM_PLUGIN_VERSION=1.2.896.0
-
 # Session Manager plugin .deb 의 SHA-256(CPU별). AWS 배포 파일을 받아 직접 계산해 넣는다.
 #   예: curl -fsSLO https://s3.amazonaws.com/session-manager-downloads/plugin/1.2.896.0/ubuntu_64bit/session-manager-plugin.deb && sha256sum session-manager-plugin.deb
 ARG SSM_PLUGIN_SHA256_AMD64=53f51fcc67314a4bf85888a38a3967cd41f8d0f28a60a9469a63acf935ba713e
@@ -55,13 +54,6 @@ RUN mkdir -p /home/vscode/.aws /home/vscode/.config/gh /home/vscode/.kube \
 
 # 내려받은 파일은 임시 폴더에 두고, 단계마다 비운다.
 WORKDIR /tmp/tools
-
-# Terraform: 공식 SHA256SUMS로 검증한다. 값이 다르면 빌드가 멈춘다.
-RUN curl -fsSLO "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${TARGETARCH}.zip" \
- && curl -fsSLO "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS" \
- && sha256sum --check --ignore-missing "terraform_${TERRAFORM_VERSION}_SHA256SUMS" \
- && unzip -o "terraform_${TERRAFORM_VERSION}_linux_${TARGETARCH}.zip" terraform -d /usr/local/bin \
- && rm -rf /tmp/tools/*
 
 # Mike Farah yq: YAML을 편집하며 platform별 공식 release SHA-256으로 확인합니다.
 RUN case "${TARGETARCH}" in \
@@ -218,7 +210,7 @@ RUN case "${TARGETARCH}" in \
  && install -m 0755 "velero-v${VELERO_VERSION}-linux-${TARGETARCH}/velero" /usr/local/bin/velero \
  && rm -rf /tmp/tools/*
 
- # AWS CLI v2: 버전 지정 주소에서 설치 파일과 서명(.sig)을 받는다(파일 이름의 CPU 표기는 x86_64·aarch64).
+# AWS CLI v2: 버전 지정 주소에서 설치 파일과 서명(.sig)을 받는다(파일 이름의 CPU 표기는 x86_64·aarch64).
 # 임시 keyring에 공개 key 하나만 넣고 fingerprint를 대조한 뒤 서명을 검증한다. 하나라도 실패하면 빌드가 멈춘다.
 COPY awscli-public-key.asc /tmp/awscli-public-key.asc
 RUN case "${TARGETARCH}" in amd64) AWS_ARCH=x86_64 ;; arm64) AWS_ARCH=aarch64 ;; esac \
@@ -235,9 +227,7 @@ RUN case "${TARGETARCH}" in amd64) AWS_ARCH=x86_64 ;; arm64) AWS_ARCH=aarch64 ;;
  && gpgconf --kill all \
  && rm -rf "${GNUPGHOME}" /tmp/awscli-public-key.asc /tmp/tools/*
 
-
-
- # Session Manager plugin: AWS 공식 .deb를 CPU에 맞는 경로에서 받아 SHA-256을 대조한 뒤 설치한다.
+# Session Manager plugin: AWS 공식 .deb를 CPU에 맞는 경로에서 받아 SHA-256을 대조한 뒤 설치한다.
 # 값이 다르면(파일 변조·버전 불일치) 빌드가 멈춘다.
 RUN case "${TARGETARCH}" in \
       amd64) SSM_ARCH=ubuntu_64bit; SSM_SHA256="${SSM_PLUGIN_SHA256_AMD64}" ;; \
@@ -249,7 +239,7 @@ RUN case "${TARGETARCH}" in \
  && dpkg -i session-manager-plugin.deb \
  && rm -rf /tmp/tools/*
 
- # 새 터미널마다 lab.env를 읽고 prompt에 profile·context를 보이는 설정. templates의 postCreateCommand가 ~/.bashrc에서 부른다.
+# 새 터미널마다 lab.env를 읽고 prompt에 profile·context를 보이는 설정. templates의 postCreateCommand가 ~/.bashrc에서 부른다.
 COPY lab-shell.sh /usr/local/share/commerce/lab-shell.sh
 
 # 임시 폴더를 지우고 기본 작업 위치를 루트로 돌린다.
