@@ -1,0 +1,26 @@
+// image build 전용 정의. 강사(또는 CI build-image.yml)만 쓴다. 수강생은 templates/ 의 세 파일을 쓴다.
+{
+  "name": "commerce-platform",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  // feature는 major tag 대신 OCI digest로 고정한다.
+  // digest 확인(예): crane digest ghcr.io/devcontainers/features/github-cli:1
+  // docker-outside-of-docker는 넣지 않는다. Host Docker 소켓이 container 안에 들어오면
+  // container 경계를 넘어 Host 파일을 읽을 수 있다. image build는 CI에서 한다.
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli@sha256:bd7ab48a832228f633239277552c30b353867fef2e5b037e064b4e64f0b843f2": {
+      // 예: 2.87.0
+      "version": "2.87.0"
+    },
+    "ghcr.io/devcontainers/features/go@sha256:2f2ed290df9a5f1841340b14cb8a287cf0574a816967dd84dcfe42fdd97b897e": {
+      "version": "1.26.5"
+    },
+    "ghcr.io/devcontainers/features/node@sha256:8c0de46939b61958041700ee89e3493f3b2e4131a06dc46b4d9423427d06e5f6": {
+      "version": "24.21.0"
+    },
+    "ghcr.io/devcontainers/features/python@sha256:fbcad6955caeecc5ad3f7886baf652e25cba5225a6c4c2287c536de2e5607511": {
+      "version": "3.12.14"
+    }
+  }
+}

@@ -1,0 +1,240 @@
+# 관리용 container 의 ~/.aws/config 예시. Host 위치: ~/.commerce-admin/aws/config
+# <...> 자리에 실제 값을 넣는다. 이 파일에 access key 를 넣지 않는다(SSO 만 쓴다).
+# 로그인: aws sso login --sso-session commerce-admin
+#   AWS CLI 2.22 이상은 기본으로 PKCE(브라우저 인가 코드) 방식을 쓴다. device code(--use-device-code)는 쓰지 않는다.
+# *-jit profile 은 JIT 배정이 살아 있는 동안만 자격 증명을 받는다. 배정이 없으면 ForbiddenException 이 정상이다.
+# 00~02-27 동안만 쓰는 임시 profile(mgmt-bootstrap-admin, <acct>-bootstrap)은 02-27 에서 지운다(아래 맨 끝).
+
+[sso-session commerce-admin]
+# 예: https://d-1234567890.awsapps.com/start
+sso_start_url = <access portal URL>
+sso_region = ap-northeast-2
+sso_registration_scopes = sso:account:access
+
+# Management 상시 조회
+[profile mgmt-viewer]
+sso_session = commerce-admin
+sso_account_id = <Management Account ID>
+sso_role_name = OrganizationViewer
+region = ap-northeast-2
+
+# JIT 승인(jit-admin-grant.yml) 뒤 최대 1시간만 동작
+[profile mgmt-admin-jit]
+sso_session = commerce-admin
+sso_account_id = <Management Account ID>
+sso_role_name = OrganizationAdministrator
+region = ap-northeast-2
+
+# Network 상시 조회
+[profile network-viewer]
+sso_session = commerce-admin
+sso_account_id = <Network Account ID>
+sso_role_name = PlatformViewer
+region = ap-northeast-2
+
+# Prod 상시 조회. kubectl context commerce-prod-eks
+[profile prod-viewer]
+sso_session = commerce-admin
+sso_account_id = <Prod Account ID>
+sso_role_name = PlatformViewer
+region = ap-northeast-2
+
+# JIT 승인 뒤 최대 4시간. kubectl context commerce-prod-eks-admin
+[profile prod-admin-jit]
+sso_session = commerce-admin
+sso_account_id = <Prod Account ID>
+sso_role_name = PlatformAdmin
+region = ap-northeast-2
+
+# JIT 승인 뒤 최대 4시간
+[profile dev-admin-jit]
+sso_session = commerce-admin
+sso_account_id = <Dev Account ID>
+sso_role_name = PlatformAdmin
+region = ap-northeast-2
+
+# GuardDuty·Config·Access Analyzer 조회
+[profile security-findings]
+sso_session = commerce-admin
+sso_account_id = <Security Tooling Account ID>
+sso_role_name = SecurityFindingsReader
+region = ap-northeast-2
+
+# Inspector 관리
+[profile inspector-admin]
+sso_session = commerce-admin
+sso_account_id = <Security Tooling Account ID>
+sso_role_name = InspectorAdministrator
+region = ap-northeast-2
+
+# 감사 trail 관리(Audit-Trail-Admins)
+[profile audit-trail-admin]
+sso_session = commerce-admin
+sso_account_id = <Security Tooling Account ID>
+sso_role_name = AuditAdministrator
+region = ap-northeast-2
+
+# 원본 보관 관리(Log-Archive-Admins)
+[profile log-archive-admin]
+sso_session = commerce-admin
+sso_account_id = <Log Archive Account ID>
+sso_role_name = LogArchiveAdministrator
+region = ap-northeast-2
+
+# 감사 log 조회
+[profile audit-reader]
+sso_session = commerce-admin
+sso_account_id = <Log Archive Account ID>
+sso_role_name = AuditReader
+region = ap-northeast-2
+
+# WAF log 조회
+[profile waf-log-reader]
+sso_session = commerce-admin
+sso_account_id = <Prod Account ID>
+sso_role_name = WafLogReader
+region = ap-northeast-2
+
+# 삭제·lock 권한 없음
+[profile backup-admin]
+sso_session = commerce-admin
+sso_account_id = <Backup Account ID>
+sso_role_name = BackupAdministrator
+region = ap-northeast-2
+
+# 복원 시험
+[profile backup-operator]
+sso_session = commerce-admin
+sso_account_id = <Backup Account ID>
+sso_role_name = BackupOperator
+region = ap-northeast-2
+
+# 서명 key 관리(Sign 불가)
+[profile signing-key-admin-dev]
+sso_session = commerce-admin
+sso_account_id = <Dev Account ID>
+sso_role_name = SigningKeyAdministrator
+region = ap-northeast-2
+
+# 서명 key 관리(Sign 불가)
+[profile signing-key-admin-prod]
+sso_session = commerce-admin
+sso_account_id = <Prod Account ID>
+sso_role_name = SigningKeyAdministrator
+region = ap-northeast-2
+
+# Backup Account의 Tokyo DR Role(12-14). backup-admin·backup-operator SSO에서 건너간다.
+# DR vault·key 관리(삭제·lock 해제·key policy 변경 없음)
+[profile backup-dr-admin]
+role_arn = arn:aws:iam::<Backup Account ID>:role/commerce-backup-dr-admin
+source_profile = backup-admin
+role_session_name = backup-dr-admin
+region = ap-northeast-1
+
+# DR 사본을 Seoul restore vault로 되돌리는 copy job만
+[profile backup-dr-copy]
+role_arn = arn:aws:iam::<Backup Account ID>:role/commerce-backup-dr-copy
+source_profile = backup-operator
+role_session_name = backup-dr-copy
+region = ap-northeast-1
+
+# JIT 승인 뒤 최대 2시간
+[profile network-provisioner-jit]
+sso_session = commerce-admin
+sso_account_id = <Network Account ID>
+sso_role_name = InfrastructureProvisioner
+region = ap-northeast-2
+
+# JIT 승인 뒤 최대 2시간
+[profile dev-provisioner-jit]
+sso_session = commerce-admin
+sso_account_id = <Dev Account ID>
+sso_role_name = InfrastructureProvisioner
+region = ap-northeast-2
+
+# JIT 승인 뒤 최대 2시간
+[profile prod-provisioner-jit]
+sso_session = commerce-admin
+sso_account_id = <Prod Account ID>
+sso_role_name = InfrastructureProvisioner
+region = ap-northeast-2
+
+# JIT 승인 뒤 최대 2시간
+[profile security-provisioner-jit]
+sso_session = commerce-admin
+sso_account_id = <Security Tooling Account ID>
+sso_role_name = InfrastructureProvisioner
+region = ap-northeast-2
+
+# JIT 승인 뒤 최대 2시간
+[profile log-archive-provisioner-jit]
+sso_session = commerce-admin
+sso_account_id = <Log Archive Account ID>
+sso_role_name = InfrastructureProvisioner
+region = ap-northeast-2
+
+# JIT 승인 뒤 최대 2시간
+[profile backup-provisioner-jit]
+sso_session = commerce-admin
+sso_account_id = <Backup Account ID>
+sso_role_name = InfrastructureProvisioner
+region = ap-northeast-2
+
+# Dev release session 상시 배정(16-09). 이 profile 자체는 아래 dev-release-operator 로 건너가는 권한만 있다.
+# 직접 쓰지 않는다. JIT 없이 aws sso login 만으로 동작한다.
+[profile dev-release]
+sso_session = commerce-admin
+sso_account_id = <Dev Account ID>
+sso_role_name = DevReleaseOperator
+region = ap-northeast-2
+
+# Dev release session item 쓰기 전용 Role(16-09). 기본 profile dev-release 에서 건너간다(JIT 필요 없음).
+# make release-* ENV=dev 가 이 profile 을 쓴다(ci/release/session.py). Prod session은 prod-admin-jit(JIT)로 쓴다.
+[profile dev-release-operator]
+role_arn = arn:aws:iam::<Dev Account ID>:role/ci/commerce-dev-release-operator
+source_profile = dev-release
+role_session_name = dev-release-operator
+region = ap-northeast-2
+
+# ── 임시(bootstrap) profile: 02-27 에서 상시 배정을 지우면 함께 지운다 ──
+[profile mgmt-bootstrap-admin]
+sso_session = commerce-admin
+sso_account_id = <Management Account ID>
+sso_role_name = OrganizationAdministrator
+region = ap-northeast-2
+
+[profile network-bootstrap]
+sso_session = commerce-admin
+sso_account_id = <Network Account ID>
+sso_role_name = InfrastructureProvisioner
+region = ap-northeast-2
+
+[profile dev-bootstrap]
+sso_session = commerce-admin
+sso_account_id = <Dev Account ID>
+sso_role_name = InfrastructureProvisioner
+region = ap-northeast-2
+
+[profile prod-bootstrap]
+sso_session = commerce-admin
+sso_account_id = <Prod Account ID>
+sso_role_name = InfrastructureProvisioner
+region = ap-northeast-2
+
+[profile security-bootstrap]
+sso_session = commerce-admin
+sso_account_id = <Security Tooling Account ID>
+sso_role_name = InfrastructureProvisioner
+region = ap-northeast-2
+
+[profile log-archive-bootstrap]
+sso_session = commerce-admin
+sso_account_id = <Log Archive Account ID>
+sso_role_name = InfrastructureProvisioner
+region = ap-northeast-2
+
+[profile backup-bootstrap]
+sso_session = commerce-admin
+sso_account_id = <Backup Account ID>
+sso_role_name = InfrastructureProvisioner
+region = ap-northeast-2

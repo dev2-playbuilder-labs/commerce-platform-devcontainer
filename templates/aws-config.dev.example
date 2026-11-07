@@ -1,0 +1,53 @@
+# 개발용 container 의 ~/.aws/config 예시. Host 위치: ~/.commerce-dev/aws/config
+# Management·Prod 관리·감사·Backup profile 은 여기에 넣지 않는다(관리용 container 에만 둔다).
+# 확인: aws configure list-profiles 결과에 mgmt-*, prod-admin-jit, *-provisioner-jit 가 없어야 한다.
+# 로그인: aws sso login --sso-session commerce-dev
+
+[sso-session commerce-dev]
+# 예: https://d-1234567890.awsapps.com/start
+sso_start_url = <access portal URL>
+sso_region = ap-northeast-2
+sso_registration_scopes = sso:account:access
+
+# Dev 기본 운영 권한. kubectl context commerce-dev-eks
+[profile dev-operator]
+sso_session = commerce-dev
+sso_account_id = <Dev Account ID>
+sso_role_name = PlatformDevOperator
+region = ap-northeast-2
+
+# 직원 진단 port-forward
+[profile dev-gateway-developer]
+sso_session = commerce-dev
+sso_account_id = <Dev Account ID>
+sso_role_name = GatewayDeveloper
+region = ap-northeast-2
+
+# Prod commerce namespace 조회. kubectl context commerce-prod-eks-readonly
+[profile prod-developer]
+sso_session = commerce-dev
+sso_account_id = <Prod Account ID>
+sso_role_name = DeveloperReadOnly
+region = ap-northeast-2
+
+# IAM DB 인증 개인 Role op_<userName> 접속
+[profile dev-db-reader]
+sso_session = commerce-dev
+sso_account_id = <Dev Account ID>
+sso_role_name = DatabaseReader
+region = ap-northeast-2
+
+# IAM DB 인증 개인 Role op_<userName> 접속
+[profile prod-db-reader]
+sso_session = commerce-dev
+sso_account_id = <Prod Account ID>
+sso_role_name = DatabaseReader
+region = ap-northeast-2
+
+# 14-14 서명 시험 전용 Role(시험 key로만 Sign). dev-operator SSO에서 건너간다. 19-17에서 시험 key와 함께 정리한다.
+[profile dev-sign-test]
+role_arn = arn:aws:iam::<Dev Account ID>:role/commerce-dev-image-sign-test
+source_profile = dev-operator
+role_session_name = dev-sign-test
+duration_seconds = 900
+region = ap-northeast-2

@@ -1,0 +1,51 @@
+// 관리용 container. 위치(예): ~/commerce-admin/.devcontainer/devcontainer.json
+// Management·Prod·감사·Backup profile 은 이 container 에서만 쓴다.
+// 이 container 에서는 pnpm install·pip install·npm install·테스트를 하지 않는다. 서드파티 코드는 sandbox 에서 실행한다.
+{
+  "name": "commerce-admin",
+  // CI(build-image.yml)가 build·서명한 image 를 digest 로 고정한다.
+  // 예: ghcr.io/<강사의 GitHub 조직>/commerce-platform-devcontainer:1.1.0@sha256:<digest>
+  "image": "ghcr.io/<강사의 GitHub 조직>/commerce-platform-devcontainer:1.1.0@sha256:REPLACE_WITH_DEVCONTAINER_IMAGE_DIGEST",
+  "remoteUser": "vscode",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode/commerce-admin,type=bind",
+  "workspaceFolder": "/home/vscode/commerce-admin",
+  // 관리용 자격 증명 폴더만 만든다. Host 의 ~/.aws·~/.config/gh·~/.kube 전체는 연결하지 않는다.
+  "initializeCommand": "mkdir -p \"${localEnv:HOME}/.commerce-admin/aws\" \"${localEnv:HOME}/.commerce-admin/gh\" \"${localEnv:HOME}/.commerce-admin/kube\"",
+  "mounts": [
+    // AWS config 예시: templates/aws-config.admin.example (sso-session commerce-admin)
+    "source=${localEnv:HOME}/.commerce-admin/aws,target=/home/vscode/.aws,type=bind",
+    // gh login scope 는 repo,workflow,read:org 만 쓴다(admin:org 금지).
+    "source=${localEnv:HOME}/.commerce-admin/gh,target=/home/vscode/.config/gh,type=bind",
+    // context 예: commerce-prod-eks(prod-viewer), commerce-prod-eks-admin(prod-admin-jit)
+    "source=${localEnv:HOME}/.commerce-admin/kube,target=/home/vscode/.kube,type=bind"
+  ],
+  // sudo 로 패키지를 설치하지 못하게 새 권한을 얻는 것을 막는다.
+  "runArgs": ["--security-opt=no-new-privileges"],
+  // 터미널 기본값. 관리용 container 의 기본 profile 은 조회 전용 prod-viewer 다.
+  // 권한을 올리는 명령에만 --profile <env>-admin-jit 처럼 붙이고, 기본값은 바꾸지 않는다(export AWS_PROFILE 금지).
+  // COMMERCE_WORKSPACE: lab.env 위치(<workspace>/work/lab.env)와 lab.env 안의 경로 기준. 예: /home/vscode/commerce-admin
+  // ARGOCD_OPTS: argocd 명령의 기본 옵션(Dev, 08-07). argocd-server를 밖에 열지 않고 관리 kubectl context로 port-forward해서 붙는다.
+  //   argocd CLI는 port-forward 설정을 로그인 context에 저장하지 않으므로 명령마다 이 옵션이 필요하다.
+  //   --argocd-context commerce-dev: 08-07·14-20에서 --name commerce-dev로 로그인한 token
+  //   명령줄에 준 옵션이 이 기본값보다 앞선다. Prod 명령은 두 값을 함께 바꾼다(17-19):
+  //   --kube-context commerce-prod-eks-admin --argocd-context commerce-prod
+  // 관리용 container에만 둔다. 개발용 container는 argocd CLI 대신 kubectl -n argocd get applications로 결과를 본다.
+  "remoteEnv": {
+    "AWS_PROFILE": "prod-viewer",
+    "COMMERCE_WORKSPACE": "${containerWorkspaceFolder}",
+    "ARGOCD_OPTS": "--port-forward-namespace argocd --kube-context commerce-dev-eks-admin --argocd-context commerce-dev"
+  },
+  // container 를 만들 때 한 번 ~/.bashrc 에 한 줄만 더한다. image 안의 lab-shell.sh 가 새 터미널마다 lab.env 를 읽고 prompt 를 바꾼다.
+  // 패키지 설치·외부 코드 실행은 하지 않는다. postStartCommand 는 두지 않는다.
+  "postCreateCommand": "echo '. /usr/local/share/commerce/lab-shell.sh' >> ~/.bashrc",
+  "forwardPorts": [8080, 3000, 9090, 9093],
+  "customizations": {
+    "vscode": {
+      // 확장도 자동 설치하지 않는다(확장도 서드파티 코드다).
+      "extensions": [],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  }
+}
