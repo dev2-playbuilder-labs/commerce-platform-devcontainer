@@ -14,10 +14,11 @@ on:
 permissions:
   contents: read
 env:
-  # 예: ghcr.io/contract2whale-labs/commerce-platform-devcontainer
+  # 예: ghcr.io/dev2-playbuilder-labs/commerce-platform-devcontainer
   IMAGE: ghcr.io/${{ github.repository_owner }}/commerce-platform-devcontainer
   # devcontainer CLI 판(0.80.0은 npm에 있음, 2026-11-06 기준 최신 0.90.0). 올릴 때 npm view @devcontainers/cli version 으로 확인한 뒤 이 값만 바꾼다.
   DEVCONTAINER_CLI_VERSION: "0.80.0"
+jobs:
   build:
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
