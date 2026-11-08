@@ -53,6 +53,13 @@ sso_account_id = <Dev Account ID>
 sso_role_name = PlatformAdmin
 region = ap-northeast-2
 
+# JIT 승인 뒤 최대 1시간. Prod DB IAM DB 인증 개인 Role op_<userName> 조회(15-10, make db-connect·db-psql ENV=prod)
+[profile prod-db-jit]
+sso_session = commerce-admin
+sso_account_id = <Prod Account ID>
+sso_role_name = DatabaseReader
+region = ap-northeast-2
+
 # GuardDuty·Config·Access Analyzer 조회
 [profile security-findings]
 sso_session = commerce-admin
