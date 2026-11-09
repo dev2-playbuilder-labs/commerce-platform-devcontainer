@@ -1,7 +1,9 @@
-# 개발용 container 의 ~/.aws/config 예시. Host 위치: ~/.commerce-dev/aws/config
-# Management·Prod 관리·감사·Backup profile 은 여기에 넣지 않는다(관리용 container 에만 둔다).
-# 확인: aws configure list-profiles 결과에 mgmt-*, prod-admin-jit, *-provisioner-jit 가 없어야 한다.
+# 개발용 container 의 ~/.aws/config 예시. Host 위치: ~/eks-tutorial-01/.credentials/dev/aws/config
+# Management·Prod 관리·감사·Backup profile 과 Prod DB 조회 profile 은 여기에 넣지 않는다(관리용 container 에만 둔다).
+# 확인: aws configure list-profiles 결과에 mgmt-*, prod-admin-jit, prod-db-*, *-provisioner-jit 가 없어야 한다.
 # 로그인: aws sso login --sso-session commerce-dev
+#   일상용 Identity Center User(예: dohyun_platform)로 로그인한다. 출력된 URL은 일상용 User 전용 Host 브라우저 profile에서 연다.
+#   관리용 User로 로그인하면 이 파일에 profile이 없어도 그 User의 관리용 배정 자격 증명을 이 container에서 받을 수 있다(00-12).
 
 [sso-session commerce-dev]
 # 예: https://d-1234567890.awsapps.com/start
@@ -30,17 +32,10 @@ sso_account_id = <Prod Account ID>
 sso_role_name = DeveloperReadOnly
 region = ap-northeast-2
 
-# IAM DB 인증 개인 Role op_<userName> 접속
+# Dev DB IAM DB 인증 개인 Role op_<userName> 접속. Prod DB는 관리용 container 의 prod-db-jit(JIT)로만 접속한다
 [profile dev-db-reader]
 sso_session = commerce-dev
 sso_account_id = <Dev Account ID>
-sso_role_name = DatabaseReader
-region = ap-northeast-2
-
-# IAM DB 인증 개인 Role op_<userName> 접속
-[profile prod-db-reader]
-sso_session = commerce-dev
-sso_account_id = <Prod Account ID>
 sso_role_name = DatabaseReader
 region = ap-northeast-2
 

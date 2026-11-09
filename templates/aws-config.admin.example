@@ -1,6 +1,8 @@
-# 관리용 container 의 ~/.aws/config 예시. Host 위치: ~/.commerce-admin/aws/config
+# 관리용 container 의 ~/.aws/config 예시. Host 위치: ~/eks-tutorial-01/.credentials/admin/aws/config
 # <...> 자리에 실제 값을 넣는다. 이 파일에 access key 를 넣지 않는다(SSO 만 쓴다).
 # 로그인: aws sso login --sso-session commerce-admin
+#   관리용 Identity Center User(예: dohyun_platform_admin)로 로그인한다. 출력된 URL은 관리용 User 전용 Host 브라우저 profile에서 연다.
+#   개발용 container는 일상용 User로 로그인한다(00-11·00-12). 권한은 profile 파일이 아니라 User의 Permission Set 배정으로 나뉜다.
 #   AWS CLI 2.22 이상은 기본으로 PKCE(브라우저 인가 코드) 방식을 쓴다. device code(--use-device-code)는 쓰지 않는다.
 # *-jit profile 은 JIT 배정이 살아 있는 동안만 자격 증명을 받는다. 배정이 없으면 ForbiddenException 이 정상이다.
 # 00~02-27 동안만 쓰는 임시 profile(mgmt-bootstrap-admin, <acct>-bootstrap)은 02-27 에서 지운다(아래 맨 끝).
@@ -51,6 +53,13 @@ region = ap-northeast-2
 sso_session = commerce-admin
 sso_account_id = <Dev Account ID>
 sso_role_name = PlatformAdmin
+region = ap-northeast-2
+
+# JIT 승인 뒤 최대 1시간. Prod DB IAM DB 인증 개인 Role op_<userName> 조회(15-10, make db-connect·db-psql ENV=prod)
+[profile prod-db-jit]
+sso_session = commerce-admin
+sso_account_id = <Prod Account ID>
+sso_role_name = DatabaseReader
 region = ap-northeast-2
 
 # GuardDuty·Config·Access Analyzer 조회

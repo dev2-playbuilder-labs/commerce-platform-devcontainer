@@ -1,23 +1,23 @@
-// 관리용 container. 위치(예): ~/commerce-admin/.devcontainer/devcontainer.json
+// 관리용 container. 위치(예): ~/eks-tutorial-01/commerce-admin/.devcontainer/devcontainer.json
 // Management·Prod·감사·Backup profile 은 이 container 에서만 쓴다.
 // 이 container 에서는 pnpm install·pip install·npm install·테스트를 하지 않는다. 서드파티 코드는 sandbox 에서 실행한다.
 {
   "name": "commerce-admin",
   // CI(build-image.yml)가 build·서명한 image 를 digest 로 고정한다.
-  // 예: ghcr.io/<강사의 GitHub 조직>/commerce-platform-devcontainer:1.1.0@sha256:<digest>
-  "image": "ghcr.io/<강사의 GitHub 조직>/commerce-platform-devcontainer:1.1.0@sha256:REPLACE_WITH_DEVCONTAINER_IMAGE_DIGEST",
+  // 예: ghcr.io/<플랫폼팀 GitHub 조직>/commerce-platform-devcontainer:1.1.0@sha256:<digest>
+  "image": "ghcr.io/<플랫폼팀 GitHub 조직>/commerce-platform-devcontainer:1.1.0@sha256:REPLACE_WITH_DEVCONTAINER_IMAGE_DIGEST",
   "remoteUser": "vscode",
   "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode/commerce-admin,type=bind",
   "workspaceFolder": "/home/vscode/commerce-admin",
   // 관리용 자격 증명 폴더만 만든다. Host 의 ~/.aws·~/.config/gh·~/.kube 전체는 연결하지 않는다.
-  "initializeCommand": "mkdir -p \"${localEnv:HOME}/.commerce-admin/aws\" \"${localEnv:HOME}/.commerce-admin/gh\" \"${localEnv:HOME}/.commerce-admin/kube\"",
+  "initializeCommand": "mkdir -p \"${localEnv:HOME}/eks-tutorial-01/.credentials/admin/aws\" \"${localEnv:HOME}/eks-tutorial-01/.credentials/admin/gh\" \"${localEnv:HOME}/eks-tutorial-01/.credentials/admin/kube\"",
   "mounts": [
     // AWS config 예시: templates/aws-config.admin.example (sso-session commerce-admin)
-    "source=${localEnv:HOME}/.commerce-admin/aws,target=/home/vscode/.aws,type=bind",
+    "source=${localEnv:HOME}/eks-tutorial-01/.credentials/admin/aws,target=/home/vscode/.aws,type=bind",
     // gh login scope 는 repo,workflow,read:org 만 쓴다(admin:org 금지).
-    "source=${localEnv:HOME}/.commerce-admin/gh,target=/home/vscode/.config/gh,type=bind",
+    "source=${localEnv:HOME}/eks-tutorial-01/.credentials/admin/gh,target=/home/vscode/.config/gh,type=bind",
     // context 예: commerce-prod-eks(prod-viewer), commerce-prod-eks-admin(prod-admin-jit)
-    "source=${localEnv:HOME}/.commerce-admin/kube,target=/home/vscode/.kube,type=bind"
+    "source=${localEnv:HOME}/eks-tutorial-01/.credentials/admin/kube,target=/home/vscode/.kube,type=bind"
   ],
   // sudo 로 패키지를 설치하지 못하게 새 권한을 얻는 것을 막는다.
   "runArgs": ["--security-opt=no-new-privileges"],

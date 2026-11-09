@@ -1,23 +1,23 @@
-// 개발용 container. 위치(예): ~/commerce-platform/.devcontainer/devcontainer.json
+// 개발용 container. 위치(예): ~/eks-tutorial-01/commerce-platform/.devcontainer/devcontainer.json
 // Dev 운영 profile(dev-operator)과 개발자 조회 profile 만 있다. Management·Prod 관리 profile 은 없다.
 // 이 container 에서는 패키지를 설치하지 않는다. Python 검사 의존성은 image 의 /opt/commerce-python venv 에 이미 있고,
 // pnpm·node 의존성 설치와 앱 시험은 PR CI 가 한다(로컬에서는 gh pr checks 로 결과를 본다).
 // Argo CD 결과 확인은 kubectl -n argocd get applications 로 한다. argocd CLI 조작은 관리용 container 에서만.
 {
   "name": "commerce-dev",
-  // 예: ghcr.io/<강사의 GitHub 조직>/commerce-platform-devcontainer:1.1.0@sha256:<digest>
-  "image": "ghcr.io/<강사의 GitHub 조직>/commerce-platform-devcontainer:1.1.0@sha256:REPLACE_WITH_DEVCONTAINER_IMAGE_DIGEST",
+  // 예: ghcr.io/<플랫폼팀 GitHub 조직>/commerce-platform-devcontainer:1.1.0@sha256:<digest>
+  "image": "ghcr.io/<플랫폼팀 GitHub 조직>/commerce-platform-devcontainer:1.1.0@sha256:REPLACE_WITH_DEVCONTAINER_IMAGE_DIGEST",
   "remoteUser": "vscode",
   "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode/commerce-platform,type=bind",
   "workspaceFolder": "/home/vscode/commerce-platform",
-  "initializeCommand": "mkdir -p \"${localEnv:HOME}/.commerce-dev/aws\" \"${localEnv:HOME}/.commerce-dev/gh\" \"${localEnv:HOME}/.commerce-dev/kube\"",
+  "initializeCommand": "mkdir -p \"${localEnv:HOME}/eks-tutorial-01/.credentials/dev/aws\" \"${localEnv:HOME}/eks-tutorial-01/.credentials/dev/gh\" \"${localEnv:HOME}/eks-tutorial-01/.credentials/dev/kube\"",
   "mounts": [
     // AWS config 예시: templates/aws-config.dev.example (sso-session commerce-dev)
-    "source=${localEnv:HOME}/.commerce-dev/aws,target=/home/vscode/.aws,type=bind",
+    "source=${localEnv:HOME}/eks-tutorial-01/.credentials/dev/aws,target=/home/vscode/.aws,type=bind",
     // gh login scope: repo,workflow,read:org
-    "source=${localEnv:HOME}/.commerce-dev/gh,target=/home/vscode/.config/gh,type=bind",
+    "source=${localEnv:HOME}/eks-tutorial-01/.credentials/dev/gh,target=/home/vscode/.config/gh,type=bind",
     // context 예: commerce-dev-eks(dev-operator), commerce-prod-eks-readonly(prod-developer)
-    "source=${localEnv:HOME}/.commerce-dev/kube,target=/home/vscode/.kube,type=bind"
+    "source=${localEnv:HOME}/eks-tutorial-01/.credentials/dev/kube,target=/home/vscode/.kube,type=bind"
   ],
   // 터미널 기본값. 개발용 container 의 기본 profile 은 Dev 기본 운영 권한 dev-operator 다.
   // 권한이 다른 명령에만 --profile dev-db-reader 처럼 붙이고, 기본값은 바꾸지 않는다(export AWS_PROFILE 금지).
