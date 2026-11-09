@@ -48,7 +48,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # 자격 증명 폴더를 vscode 소유로 미리 만든다. 없으면 mount할 때 Docker가 root 소유로 만든다.
-# 관리용·개발용 container만 이 경로에 Host 폴더(~/.commerce-admin/*, ~/.commerce-dev/*)를 mount한다. sandbox는 mount하지 않는다.
+# 관리용·개발용 container만 이 경로에 Host 폴더(~/eks-tutorial-01/.credentials/admin/*, ~/eks-tutorial-01/.credentials/dev/*)를 mount한다. sandbox는 mount하지 않는다.
 RUN mkdir -p /home/vscode/.aws /home/vscode/.config/gh /home/vscode/.kube \
  && chown -R vscode:vscode /home/vscode/.aws /home/vscode/.config /home/vscode/.kube
 

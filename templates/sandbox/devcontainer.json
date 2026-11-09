@@ -1,13 +1,13 @@
-// 설치·테스트 전용 container. 위치(예): ~/commerce-sandbox/.devcontainer/devcontainer.json
+// 설치·테스트 전용 container. 위치(예): ~/eks-tutorial-01/commerce-sandbox/.devcontainer/devcontainer.json
 // 자격 증명 없이 서드파티 코드를 시험해 볼 때 쓰는 container 다(예: 새 npm package 를 PR 전에 돌려 보기).
 // 과정 본문 실습은 이 container 를 쓰지 않는다. Python 검사 의존성은 image 에 있고, pnpm 설치·시험은 PR CI 가 한다.
 // 자격 증명 mount 가 없다. 확인: ls ~/.aws ~/.config/gh ~/.kube 와 docker ps 가 모두 실패해야 한다.
 {
   "name": "commerce-sandbox",
-  // 예: ghcr.io/<강사의 GitHub 조직>/commerce-platform-devcontainer:1.1.0@sha256:<digest>
-  "image": "ghcr.io/<강사의 GitHub 조직>/commerce-platform-devcontainer:1.1.0@sha256:REPLACE_WITH_DEVCONTAINER_IMAGE_DIGEST",
+  // 예: ghcr.io/<플랫폼팀 GitHub 조직>/commerce-platform-devcontainer:1.1.0@sha256:<digest>
+  "image": "ghcr.io/<플랫폼팀 GitHub 조직>/commerce-platform-devcontainer:1.1.0@sha256:REPLACE_WITH_DEVCONTAINER_IMAGE_DIGEST",
   "remoteUser": "vscode",
-  // 작업할 저장소 사본만 연결한다(예: ~/commerce-sandbox/commerce-api).
+  // Host 작업 폴더의 저장소 사본만 연결한다(예: ~/eks-tutorial-01/commerce-sandbox/commerce-api).
   "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode/commerce-sandbox,type=bind",
   "workspaceFolder": "/home/vscode/commerce-sandbox",
   // AWS·gh·kube 폴더를 mount 하지 않는다. AWS SDK 가 실수로 자격 증명을 찾지 않게 경로도 비운다.

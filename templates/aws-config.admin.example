@@ -1,4 +1,4 @@
-# 관리용 container 의 ~/.aws/config 예시. Host 위치: ~/.commerce-admin/aws/config
+# 관리용 container 의 ~/.aws/config 예시. Host 위치: ~/eks-tutorial-01/.credentials/admin/aws/config
 # <...> 자리에 실제 값을 넣는다. 이 파일에 access key 를 넣지 않는다(SSO 만 쓴다).
 # 로그인: aws sso login --sso-session commerce-admin
 #   관리용 Identity Center User(예: dohyun_platform_admin)로 로그인한다. 출력된 URL은 관리용 User 전용 Host 브라우저 profile에서 연다.

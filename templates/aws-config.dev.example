@@ -1,4 +1,4 @@
-# 개발용 container 의 ~/.aws/config 예시. Host 위치: ~/.commerce-dev/aws/config
+# 개발용 container 의 ~/.aws/config 예시. Host 위치: ~/eks-tutorial-01/.credentials/dev/aws/config
 # Management·Prod 관리·감사·Backup profile 과 Prod DB 조회 profile 은 여기에 넣지 않는다(관리용 container 에만 둔다).
 # 확인: aws configure list-profiles 결과에 mgmt-*, prod-admin-jit, prod-db-*, *-provisioner-jit 가 없어야 한다.
 # 로그인: aws sso login --sso-session commerce-dev
