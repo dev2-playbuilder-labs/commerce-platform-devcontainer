@@ -1,0 +1,15 @@
+// 관리용 컨테이너 창의 색 구분. 관리 권한이 있는 창임을 빨간색으로 경고한다.
+// 호스트 작업 폴더의 .vscode/settings.json으로 복사한다. 컨테이너를 다시 빌드하지 않아도 바로 적용된다.
+{
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#7f1d1d",
+    "titleBar.activeForeground": "#ffffff",
+    "titleBar.inactiveBackground": "#5a1515",
+    "titleBar.inactiveForeground": "#e5e5e5",
+    "statusBar.background": "#991b1b",
+    "statusBar.foreground": "#ffffff",
+    "terminal.background": "#1f0d0d"
+  },
+  // 창 제목 앞에 역할을 붙여 여러 창을 띄워도 구분한다.
+  "window.title": "[ADMIN] ${rootName}${separator}${activeEditorShort}"
+}
