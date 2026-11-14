@@ -1,0 +1,15 @@
+// 설치·테스트용 컨테이너 창의 색 구분. 자격 증명이 없는 격리 창은 보라색으로 구분한다.
+// 호스트 작업 폴더의 .vscode/settings.json으로 복사한다. 컨테이너를 다시 빌드하지 않아도 바로 적용된다.
+{
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#3b2a6b",
+    "titleBar.activeForeground": "#ffffff",
+    "titleBar.inactiveBackground": "#2b1f4f",
+    "titleBar.inactiveForeground": "#e5e5e5",
+    "statusBar.background": "#4c3a8a",
+    "statusBar.foreground": "#ffffff",
+    "terminal.background": "#141026"
+  },
+  // 창 제목 앞에 역할을 붙여 여러 창을 띄워도 구분한다.
+  "window.title": "[SANDBOX] ${rootName}${separator}${activeEditorShort}"
+}
