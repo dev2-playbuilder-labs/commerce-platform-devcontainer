@@ -1,5 +1,5 @@
 // 관리용 container. 위치(예): ~/eks-tutorial-01/commerce-admin/.devcontainer/devcontainer.json
-// Management·Prod·감사·Backup profile 은 이 container 에서만 쓴다.
+// Management·Shared Services(Identity Center)·Prod·감사·Backup profile 은 이 container 에서만 쓴다.
 // 이 container 에서는 pnpm install·pip install·npm install·테스트를 하지 않는다. 서드파티 코드는 sandbox 에서 실행한다.
 {
   "name": "commerce-admin",

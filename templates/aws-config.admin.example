@@ -20,11 +20,19 @@ sso_account_id = <Management Account ID>
 sso_role_name = OrganizationViewer
 region = ap-northeast-2
 
-# JIT 승인(jit-admin-grant.yml) 뒤 최대 1시간만 동작
+# JIT 승인(jit-admin-grant.yml) 뒤 최대 1시간만 동작. Organization·결제·Account 정리처럼 Management에서만 하는 작업용
 [profile mgmt-admin-jit]
 sso_session = commerce-admin
 sso_account_id = <Management Account ID>
 sso_role_name = OrganizationAdministrator
+region = ap-northeast-2
+
+# Identity Center 위임 관리자(Shared Services). JIT 승인 뒤 최대 1시간.
+# 사용자 비활성화·MFA 초기화·활성 세션 삭제, SAML 앱 설정. Permission Set·배정·Group 구성원은 PR(shared-services/identity)로만 바꾼다
+[profile shared-services-identity-jit]
+sso_session = commerce-admin
+sso_account_id = <Shared Services Account ID>
+sso_role_name = IdentityAdministrator
 region = ap-northeast-2
 
 # Network 상시 조회
@@ -111,7 +119,7 @@ sso_account_id = <Backup Account ID>
 sso_role_name = BackupAdministrator
 region = ap-northeast-2
 
-# 복원 시험
+# 복원 테스트
 [profile backup-operator]
 sso_session = commerce-admin
 sso_account_id = <Backup Account ID>
@@ -151,6 +159,13 @@ region = ap-northeast-1
 [profile network-provisioner-jit]
 sso_session = commerce-admin
 sso_account_id = <Network Account ID>
+sso_role_name = InfrastructureProvisioner
+region = ap-northeast-2
+
+# JIT 승인 뒤 최대 2시간
+[profile shared-services-provisioner-jit]
+sso_session = commerce-admin
+sso_account_id = <Shared Services Account ID>
 sso_role_name = InfrastructureProvisioner
 region = ap-northeast-2
 
@@ -215,6 +230,13 @@ region = ap-northeast-2
 [profile network-bootstrap]
 sso_session = commerce-admin
 sso_account_id = <Network Account ID>
+sso_role_name = InfrastructureProvisioner
+region = ap-northeast-2
+
+# Shared Services bootstrap과 GitHub 설정 stack 첫 apply(make bootstrap ACCOUNT=github, State가 이 Account에 있음)
+[profile shared-services-bootstrap]
+sso_session = commerce-admin
+sso_account_id = <Shared Services Account ID>
 sso_role_name = InfrastructureProvisioner
 region = ap-northeast-2
 
